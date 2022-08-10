@@ -27,14 +27,20 @@ export const TodosSlice = createSlice({
     },
   },
   reducers: {
-    addItem: (state, action) => {
-      const lastTodo = state.items.at(-1);
-      const lastID = lastTodo ? lastTodo.id : -1;
-
-      state.items.push({
-        id: lastID + 1,
-        ...action.payload,
-      });
+    addItem: {
+      reducer: (state, action) => {
+        const lastTodo = state.items.at(-1);
+        const lastID = lastTodo ? lastTodo.id : -1;
+        state.items.push({ id: lastID + 1, ...action.payload });
+      },
+      prepare: ({ title }) => {
+        return {
+          payload: {
+            status: 'uncompleted',
+            title,
+          },
+        };
+      },
     },
     removeItem: (state, action) => {
       const itemID = action.payload;
@@ -81,5 +87,22 @@ export const {
   filterActive,
   filterCompleted,
 } = TodosSlice.actions;
+
+export const TodosSelector = (state) => state.todos.items;
+export const FilterStatusSelector = (state) => state.todos.filterStatus;
+export const FilteredTodosSelector = (state) => {
+  const activeTodos = state.todos.items.filter(
+    (todo) => todo.status === 'uncompleted'
+  );
+  const completedTodos = state.todos.items.filter(
+    (todo) => todo.status === 'completed'
+  );
+
+  return state.todos.filterStatus.all === 'selected'
+    ? state.todos.items
+    : state.todos.filterStatus.active === 'selected'
+    ? activeTodos
+    : completedTodos;
+};
 
 export default TodosSlice.reducer;

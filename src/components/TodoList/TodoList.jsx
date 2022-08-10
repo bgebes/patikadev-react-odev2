@@ -1,19 +1,10 @@
 import React from 'react';
 import TodoItem from '../TodoItem/TodoItem';
 import { useSelector } from 'react-redux';
+import { FilteredTodosSelector } from '../../redux/Todos/TodosSlice';
 
 function TodoList() {
-  const todos = useSelector((state) => state.todos.items);
-  const filterStatus = useSelector((state) => state.todos.filterStatus);
-
-  const activeTodos = todos.filter((todo) => todo.status === 'uncompleted');
-  const completedTodos = todos.filter((todo) => todo.status === 'completed');
-  const filteredTodos =
-    filterStatus.all === 'selected'
-      ? todos
-      : filterStatus.active === 'selected'
-      ? activeTodos
-      : completedTodos;
+  const filteredTodos = useSelector(FilteredTodosSelector);
 
   return (
     <section className="main">

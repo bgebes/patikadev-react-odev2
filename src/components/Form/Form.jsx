@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   addItem,
@@ -6,65 +6,40 @@ import {
   filterNone,
   filterActive,
   filterCompleted,
+  FilterStatusSelector,
+  FilteredTodosSelector,
 } from '../../redux/Todos/TodosSlice';
 import TodoList from '../TodoList/TodoList';
 import './Form.css';
 
 function Form() {
-  const todos = useSelector((state) => state.todos.items);
-  const filterStatus = useSelector((state) => state.todos.filterStatus);
+  const filterStatus = useSelector(FilterStatusSelector);
   const dispatch = useDispatch();
+  const refInput = useRef();
 
   const addTodo = (event) => {
     event.preventDefault();
 
-    const text = event.target.value;
-    const keyCode = event.keyCode;
-
-    if (keyCode !== 13 || text.length < 1) {
+    if (refInput.current.value.length < 1) {
       return;
     }
 
-    dispatch(
-      addItem({
-        status: 'uncompleted',
-        title: text,
-      })
-    );
-
-    event.target.value = null;
+    dispatch(addItem({ title: refInput.current.value }));
+    refInput.current.value = null;
   };
 
-  const getLength = () => {
-    if (filterStatus.all === 'selected') {
-      return todos.length;
-    }
-
-    const lengthActiveTodos = todos.filter(
-      (todo) => todo.status == 'uncompleted'
-    ).length;
-    const lengthCompletedTodos = todos.filter(
-      (todo) => todo.status == 'completed'
-    ).length;
-
-    return filterStatus.active === 'selected'
-      ? lengthActiveTodos
-      : lengthCompletedTodos;
-  };
-
-  const length = getLength();
-
+  const length = useSelector(FilteredTodosSelector).length;
   return (
     <>
       <section className="todoapp">
         <header className="header">
           <h1>todos</h1>
-          <form>
+          <form onSubmit={addTodo}>
             <input
               className="new-todo"
               placeholder="What needs to be done?"
               autoFocus
-              onKeyUp={addTodo}
+              ref={refInput}
             />
           </form>
         </header>
