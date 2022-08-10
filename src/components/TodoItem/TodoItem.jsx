@@ -1,17 +1,9 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
+import { removeItem, toggleItem } from '../../redux/Todos/TodosSlice';
 
-function TodoItem({ status, title, destroyTodo, todoState }) {
-  const [todos, setTodos] = todoState;
-
-  const toggleTodo = () => {
-    const newStatus = status === 'completed' ? 'uncompleted' : 'completed';
-    const newState = todos.map((todo) => {
-      if (todo.title === title) todo.status = newStatus;
-      return todo;
-    });
-
-    setTodos(newState);
-  };
+function TodoItem({ id, status, title }) {
+  const dispatch = useDispatch();
 
   return (
     <li className={status}>
@@ -20,10 +12,10 @@ function TodoItem({ status, title, destroyTodo, todoState }) {
           className="toggle"
           type="checkbox"
           checked={status === 'completed' ? true : false}
-          onChange={toggleTodo}
+          onChange={() => dispatch(toggleItem(id))}
         />
         <label>{title}</label>
-        <button className="destroy" onClick={destroyTodo} />
+        <button className="destroy" onClick={() => dispatch(removeItem(id))} />
       </div>
     </li>
   );

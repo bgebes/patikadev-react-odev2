@@ -1,31 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  addItem,
+  clearCompletedItems,
+  filterNone,
+  filterActive,
+  filterCompleted,
+} from '../../redux/Todos/TodosSlice';
 import TodoList from '../TodoList/TodoList';
 import './Form.css';
 
 function Form() {
-  const [todos, setTodos] = useState([
-    {
-      status: 'completed',
-      title: 'Learn JavaScript',
-    },
-    {
-      status: 'uncompleted',
-      title: 'Learn React',
-    },
-    {
-      status: 'uncompleted',
-      title: 'Have a life!',
-    },
-  ]);
-
-  const [filteredTodos, setFilteredTodos] = useState(null);
-  const [selectedFilters, setSelectedFilters] = useState({
-    all: 'selected',
-    active: 'unselected',
-    completed: 'unselected',
-  });
+  const todos = useSelector((state) => state.todos.items);
+  const filterStatus = useSelector((state) => state.todos.filterStatus);
+  const dispatch = useDispatch();
 
   const addTodo = (event) => {
+    event.preventDefault();
+
     const text = event.target.value;
     const keyCode = event.keyCode;
 
@@ -33,49 +25,34 @@ function Form() {
       return;
     }
 
-    setTodos([
-      ...todos,
-      {
+    dispatch(
+      addItem({
         status: 'uncompleted',
         title: text,
-      },
-    ]);
+      })
+    );
 
     event.target.value = null;
   };
 
-  const clearCompletedTodos = () => {
-    setTodos([...todos.filter((todo) => todo.status === 'uncompleted')]);
-    setFilteredTodos([
-      ...filteredTodos.filter((todo) => todo.status === 'uncompleted'),
-    ]);
+  const getLength = () => {
+    if (filterStatus.all === 'selected') {
+      return todos.length;
+    }
+
+    const lengthActiveTodos = todos.filter(
+      (todo) => todo.status == 'uncompleted'
+    ).length;
+    const lengthCompletedTodos = todos.filter(
+      (todo) => todo.status == 'completed'
+    ).length;
+
+    return filterStatus.active === 'selected'
+      ? lengthActiveTodos
+      : lengthCompletedTodos;
   };
 
-  const filterNone = () => {
-    setFilteredTodos(null);
-    setSelectedFilters({
-      all: 'selected',
-      active: 'unselected',
-      completed: 'unselected',
-    });
-  };
-
-  const filterActive = () => {
-    setFilteredTodos(todos.filter((todo) => todo.status === 'uncompleted'));
-    setSelectedFilters({
-      all: 'unselected',
-      active: 'selected',
-      completed: 'unselected',
-    });
-  };
-  const filterCompleted = () => {
-    setFilteredTodos(todos.filter((todo) => todo.status === 'completed'));
-    setSelectedFilters({
-      all: 'unselected',
-      active: 'unselected',
-      completed: 'selected',
-    });
-  };
+  const length = getLength();
 
   return (
     <>
@@ -92,29 +69,29 @@ function Form() {
           </form>
         </header>
 
-        <TodoList todoState={[todos, setTodos]} filteredTodos={filteredTodos} />
+        <TodoList />
 
         <footer className="footer">
           <span className="todo-count">
-            <strong>
-              {filteredTodos === null
-                ? todos.filter((todo) => todo.status === 'uncompleted').length
-                : filteredTodos.length}{' '}
-            </strong>
-            items left
+            <strong>{length} </strong>
+            item{length > 1 && 's'} left
           </span>
 
           <ul className="filters">
             <li>
-              <a href="#/" className={selectedFilters.all} onClick={filterNone}>
+              <a
+                href="#/"
+                className={filterStatus.all}
+                onClick={() => dispatch(filterNone())}
+              >
                 All
               </a>
             </li>
             <li>
               <a
                 href="#/"
-                className={selectedFilters.active}
-                onClick={filterActive}
+                className={filterStatus.active}
+                onClick={() => dispatch(filterActive())}
               >
                 Active
               </a>
@@ -122,15 +99,18 @@ function Form() {
             <li>
               <a
                 href="#/"
-                className={selectedFilters.completed}
-                onClick={filterCompleted}
+                className={filterStatus.completed}
+                onClick={() => dispatch(filterCompleted())}
               >
                 Completed
               </a>
             </li>
           </ul>
 
-          <button className="clear-completed" onClick={clearCompletedTodos}>
+          <button
+            className="clear-completed"
+            onClick={() => dispatch(clearCompletedItems())}
+          >
             Clear completed
           </button>
         </footer>
